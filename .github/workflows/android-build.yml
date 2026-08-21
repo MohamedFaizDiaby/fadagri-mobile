@@ -45,9 +45,22 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x android/gradlew
 
+      - name: Debug — verify capacitor-android / capacitor-splash-screen module paths
+        run: |
+          echo "--- capacitor.settings.gradle ---"
+          cat android/capacitor.settings.gradle
+          echo "--- node_modules/@capacitor/android/capacitor ---"
+          ls -la node_modules/@capacitor/android/capacitor || echo MISSING
+          echo "--- node_modules/@capacitor/splash-screen/android ---"
+          ls -la node_modules/@capacitor/splash-screen/android || echo MISSING
+
+      - name: Debug — list Gradle-recognized projects
+        working-directory: android
+        run: ./gradlew projects --console=plain
+
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew assembleDebug --console=plain
+        run: ./gradlew assembleDebug --console=plain --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
