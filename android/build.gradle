@@ -7,7 +7,13 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
+        // Pinned below the version Capacitor's own `cap add android` template
+        // ships (8.13.0 as of Capacitor 8.5.0): @capacitor/android's own
+        // compiled module doesn't publish Gradle variant metadata compatible
+        // with that AGP release yet, so consuming it fails with "No matching
+        // variant of project :capacitor-android ... No variants exist"
+        // (ionic-team/capacitor#8292).
+        classpath 'com.android.tools.build:gradle:8.12.2'
         classpath 'com.google.gms:google-services:4.4.4'
 
         // NOTE: Do not place your application dependencies here; they belong
