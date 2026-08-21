@@ -45,22 +45,38 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x android/gradlew
 
+      # Written to the job Summary (not just the step log) so it's visible on
+      # the run's Summary tab without needing to sign in or expand any step.
       - name: Debug — verify capacitor-android / capacitor-splash-screen module paths
         run: |
-          echo "--- capacitor.settings.gradle ---"
-          cat android/capacitor.settings.gradle
-          echo "--- node_modules/@capacitor/android/capacitor ---"
-          ls -la node_modules/@capacitor/android/capacitor || echo MISSING
-          echo "--- node_modules/@capacitor/splash-screen/android ---"
-          ls -la node_modules/@capacitor/splash-screen/android || echo MISSING
+          {
+            echo '```'
+            echo "--- capacitor.settings.gradle ---"
+            cat android/capacitor.settings.gradle
+            echo "--- node_modules/@capacitor/android/capacitor ---"
+            ls -la node_modules/@capacitor/android/capacitor || echo MISSING
+            echo "--- node_modules/@capacitor/splash-screen/android ---"
+            ls -la node_modules/@capacitor/splash-screen/android || echo MISSING
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Debug — list Gradle-recognized projects
         working-directory: android
-        run: ./gradlew projects --console=plain
+        run: |
+          {
+            echo '```'
+            ./gradlew projects --console=plain
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew assembleDebug --console=plain --stacktrace
+        run: |
+          set +e
+          ./gradlew assembleDebug --console=plain --stacktrace 2>&1 | tee build.log
+          status=${PIPESTATUS[0]}
+          { echo '```'; tail -n 150 build.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $status
 
       - uses: actions/upload-artifact@v4
         with:
