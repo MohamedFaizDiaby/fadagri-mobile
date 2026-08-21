@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>FADAGRI</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #f3ecdf;
+    color: #164a14;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+</style>
+</head>
+<body>
+  <!--
+    This page is never shown in normal use: capacitor.config.ts sets
+    server.url to https://fadagri.netlify.app, so the native WebView loads
+    the live site directly instead of this local file. It only appears if
+    the device has no network connectivity at all when the app launches.
+  -->
+  <div>
+    <p>Connexion à FADAGRI…</p>
+    <p style="font-size: 14px; opacity: 0.7">Vérifiez votre connexion internet si cet écran persiste.</p>
+  </div>
+</body>
+</html>
