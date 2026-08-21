@@ -19,18 +19,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      # Deliberately not running `npm ci` / `npx cap sync` here: the native
-      # android/ project (including capacitor-cordova-android-plugins, see
-      # its .gitignore note) is committed as-is and self-contained. Running
-      # `cap sync` regenerates that folder from installed Cordova plugins —
-      # since this project has none, it wipes cordova.variables.gradle right
-      # back out and the build fails the same way a manual `cap sync` does
-      # locally (ionic-team/ionic-framework#22894).
+      # `node_modules` is required at build time: android/capacitor.settings.gradle
+      # points capacitor-android and capacitor-splash-screen straight at
+      # node_modules/@capacitor/*, unlike a typical Android project.
+      - name: Install dependencies
+        run: npm ci
+
+      # Deliberately NOT running `npx cap sync` here: the native android/
+      # project (including capacitor-cordova-android-plugins, see its
+      # .gitignore note) is committed as-is and self-contained. `cap sync`
+      # regenerates that folder from installed Cordova plugins — since this
+      # project has none, it wipes cordova.variables.gradle right back out
+      # and the build fails the same way a manual `cap sync` does locally
+      # (ionic-team/ionic-framework#22894).
 
       - name: Grant execute permission for gradlew
         run: chmod +x android/gradlew
