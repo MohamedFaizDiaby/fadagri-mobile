@@ -1,0 +1,52 @@
+workflows:
+  ios-workflow:
+    name: iOS — FADAGRI
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      # Must match the name given to the App Store Connect integration in
+      # Codemagic Team settings → Integrations → App Store Connect (see
+      # fadagri-mobile/README.md for the exact setup steps).
+      app_store_connect: codemagic
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.fadagri.app
+      vars:
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+      node: 20
+      xcode: latest
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Install npm dependencies
+        # Required at build time: ios/App/CapApp-SPM/Package.swift references
+        # node_modules/@capacitor/splash-screen as a local Swift package
+        # dependency, same as capacitor.settings.gradle does for Android.
+        script: npm ci
+
+      - name: Set up code signing settings on Xcode project
+        script: xcode-project use-profiles
+
+      - name: Build ipa for distribution
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # Flip to true once ready to ship past internal TestFlight testing.
+        submit_to_app_store: false

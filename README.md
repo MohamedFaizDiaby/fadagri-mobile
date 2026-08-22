@@ -17,6 +17,8 @@ publication.
   tester la partie iOS depuis ce PC Windows).
 - `.github/workflows/android-build.yml` — build Android automatique sur GitHub Actions à chaque push (voir plus bas
   pourquoi c'est le moyen le plus fiable de compiler l'APK pour l'instant).
+- `codemagic.yaml` — build + signature + envoi TestFlight automatique de l'app iOS via Codemagic (cloud, pas de Mac
+  requis), voir "Compiler l'app iOS" ci-dessous pour la configuration.
 
 ## Compiler l'APK Android
 
@@ -41,14 +43,33 @@ cd android
 ## Compiler l'app iOS
 
 Impossible sur ce PC (pas de Mac). Deux options :
-1. Ouvrir `ios/App/App.xcworkspace` dans Xcode sur un Mac, puis Product → Archive pour la soumission App Store.
-2. Un service CI cloud comme [Codemagic](https://codemagic.io) (bon support Capacitor prêt à l'emploi) peut compiler,
-   signer et soumettre l'app sans Mac local — nécessite toujours un compte Apple Developer Program actif.
+
+1. **Sur un Mac** : `npm ci` (nécessaire — `ios/App/CapApp-SPM/Package.swift` référence
+   `node_modules/@capacitor/splash-screen` en dépendance Swift Package locale), puis ouvrir
+   `ios/App/App.xcodeproj` dans Xcode (pas de `.xcworkspace` séparé — pas de CocoaPods, Capacitor 8 utilise Swift Package
+   Manager). Sélectionner l'équipe de signature (**Signing & Capabilities**), puis **Product → Archive** pour la
+   soumission App Store.
+2. **Cloud (recommandé ici, pas de Mac disponible)** : [Codemagic](https://codemagic.io), configuré via
+   [`codemagic.yaml`](codemagic.yaml) à la racine du dépôt. Étapes de configuration côté Codemagic :
+   1. Créer un compte sur [codemagic.io](https://codemagic.io), connecter le compte GitHub, ajouter le dépôt
+      `fadagri-mobile`.
+   2. **App Store Connect → Users and Access → Integrations → App Store Connect API** : générer une clé API (accès
+      "Admin" ou "App Manager"), télécharger le fichier `.p8`, noter le **Key ID** et l'**Issuer ID**.
+   3. Dans Codemagic : **Team settings → Integrations → App Store Connect** → coller la clé `.p8`, le Key ID et l'Issuer
+      ID, nommer l'intégration exactement **`codemagic`** (doit correspondre à `integrations.app_store_connect` dans
+      `codemagic.yaml`).
+   4. Dans App Store Connect, créer la fiche de l'app (**My Apps → +** → nom "FADAGRI", bundle ID `com.fadagri.app`,
+      langue principale) — nécessaire avant le premier envoi TestFlight.
+   5. Pousser sur `main` déclenche automatiquement le build (`ios-workflow` dans `codemagic.yaml`) ; le build signé est
+      envoyé sur TestFlight (`submit_to_testflight: true`). Passer `submit_to_app_store: true` quand prêt pour la revue
+      Apple.
 
 ## Check-list avant publication
 
-- [ ] Compte **Apple Developer Program** (99 $/an) créé.
+- [x] Compte **Apple Developer Program** (99 $/an) créé (Individuel).
 - [ ] Compte **Google Play Console** (25 $ paiement unique) créé.
+- [ ] Compte Codemagic créé + intégration App Store Connect configurée (voir "Compiler l'app iOS").
+- [ ] Fiche app créée dans App Store Connect (nom "FADAGRI", bundle ID `com.fadagri.app`).
 - [ ] Icônes/splash validées visuellement sur un vrai écran (fournies dans `assets/`, générées via
       `npx capacitor-assets generate`).
 - [ ] Politique de confidentialité rédigée et publiée (obligatoire pour les deux stores — le site collecte des données via
