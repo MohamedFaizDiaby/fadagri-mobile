@@ -26,7 +26,11 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          # @capacitor/android's compileDebugJavaWithJavac requires source
+          # release 21 (matches AGP 8.13.0, which the whole cap-add-android
+          # template is built around) — 17 fails with "invalid source
+          # release: 21".
+          java-version: "21"
 
       # `node_modules` is required at build time: android/capacitor.settings.gradle
       # points capacitor-android and capacitor-splash-screen straight at
